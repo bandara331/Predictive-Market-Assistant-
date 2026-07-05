@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI Business & Financial Dashboard — Real-time stock predictions powered by LSTM and Groq AI insights." />
+  <title>Predictive Market Assistant | AI Financial Intelligence</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- TradingView Lightweight Charts -->
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--                LOADING OVERLAY              -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="loading-overlay" class="loading-overlay">
+    <div class="loader-content">
+      <div class="loader-ring"></div>
+      <div class="loader-ring loader-ring--inner"></div>
+      <div class="loader-logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M20 4L36 12V28L20 36L4 28V12L20 4Z" stroke="url(#hexGrad)" stroke-width="2" fill="none"/>
+          <path d="M12 20L17 25L28 14" stroke="url(#checkGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="hexGrad" x1="4" y1="4" x2="36" y2="36">
+              <stop offset="0%" stop-color="#00d4ff"/>
+              <stop offset="100%" stop-color="#7b61ff"/>
+            </linearGradient>
+            <linearGradient id="checkGrad" x1="12" y1="14" x2="28" y2="25">
+              <stop offset="0%" stop-color="#00d4ff"/>
+              <stop offset="100%" stop-color="#7b61ff"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+    <p class="loader-text">Initializing AI Systems...</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--               AUTH SECTION                  -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="auth-section" class="auth-section hidden">
+    <div class="auth-background">
+      <div class="auth-orb auth-orb--1"></div>
+      <div class="auth-orb auth-orb--2"></div>
+      <div class="auth-orb auth-orb--3"></div>
+      <canvas id="particle-canvas" class="particle-canvas"></canvas>
+    </div>
+
+    <div class="auth-container">
+      <!-- Branding -->
+      <div class="auth-brand">
+        <div class="brand-icon">
+          <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+            <path d="M20 4L36 12V28L20 36L4 28V12L20 4Z" stroke="url(#hexGrad2)" stroke-width="2" fill="rgba(0,212,255,0.05)"/>
+            <path d="M12 20L17 25L28 14" stroke="url(#checkGrad2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="hexGrad2" x1="4" y1="4" x2="36" y2="36">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="100%" stop-color="#7b61ff"/>
+              </linearGradient>
+              <linearGradient id="checkGrad2" x1="12" y1="14" x2="28" y2="25">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="100%" stop-color="#7b61ff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-name">PredictIQ</h1>
+          <p class="brand-tagline">AI Financial Intelligence Platform</p>
+        </div>
+      </div>
+
+      <!-- Auth Card -->
+      <div class="auth-card glass-card">
+        <!-- Tab Switcher -->
+        <div class="auth-tabs" role="tablist">
+          <button id="tab-login" class="auth-tab active" role="tab" aria-selected="true" onclick="switchTab('login')">Sign In</button>
+          <button id="tab-register" class="auth-tab" role="tab" aria-selected="false" onclick="switchTab('register')">Create Account</button>
+          <div class="tab-indicator" id="tab-indicator"></div>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="auth-form" onsubmit="handleLogin(event)" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="login-email">Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/></svg>
+              </span>
+              <input type="email" id="login-email" class="form-input" placeholder="you@company.com" autocomplete="email" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <input type="password" id="login-password" class="form-input" placeholder="Enter your password" autocomplete="current-password" required />
+              <button type="button" class="toggle-pw" onclick="togglePassword('login-password')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="login-error" class="form-error hidden"></div>
+          <button type="submit" id="login-submit" class="btn-primary btn-full">
+            <span class="btn-text">Sign In</span>
+            <span class="btn-loader hidden"></span>
+          </button>
+          <p class="auth-switch">Don't have an account? <a href="#" onclick="switchTab('register')">Create one free</a></p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="reg-firstname">First Name</label>
+              <div class="input-wrapper">
+                <span class="input-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+                <input type="text" id="reg-firstname" class="form-input" placeholder="John" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-lastname">Last Name</label>
+              <div class="input-wrapper">
+                <input type="text" id="reg-lastname" class="form-input" placeholder="Doe" required />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-email">Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 7l10 6 10-6"/></svg>
+              </span>
+              <input type="email" id="reg-email" class="form-input" placeholder="you@company.com" autocomplete="email" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <input type="password" id="reg-password" class="form-input" placeholder="Min. 8 characters" autocomplete="new-password" required />
+              <button type="button" class="toggle-pw" onclick="togglePassword('reg-password')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12S5 4 12 4s11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar" id="strength-bar"></div>
+            </div>
+          </div>
+          <div id="register-error" class="form-error hidden"></div>
+          <button type="submit" id="register-submit" class="btn-primary btn-full">
+            <span class="btn-text">Create Account</span>
+            <span class="btn-loader hidden"></span>
+          </button>
+          <p class="auth-switch">Already have an account? <a href="#" onclick="switchTab('login')">Sign in</a></p>
+        </form>
+      </div>
+
+      <!-- Feature Pills -->
+      <div class="auth-features">
+        <div class="feature-pill"><span class="pill-dot pill-dot--green"></span>LSTM Predictions</div>
+        <div class="feature-pill"><span class="pill-dot pill-dot--blue"></span>Groq AI Insights</div>
+        <div class="feature-pill"><span class="pill-dot pill-dot--purple"></span>Real-Time Data</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!--             MAIN DASHBOARD                  -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="dashboard-section" class="dashboard-section hidden">
+
+    <!-- ─── TOP NAVBAR ─── -->
+    <nav class="navbar">
+      <div class="navbar-left">
+        <div class="nav-brand">
+          <div class="brand-icon brand-icon--sm">
+            <svg width="20" height="20" viewBox="0 0 40 40" fill="none">
+              <path d="M20 4L36 12V28L20 36L4 28V12L20 4Z" stroke="url(#hexGrad3)" stroke-width="2" fill="rgba(0,212,255,0.08)"/>
+              <path d="M12 20L17 25L28 14" stroke="url(#checkGrad3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="hexGrad3" x1="4" y1="4" x2="36" y2="36"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#7b61ff"/></linearGradient>
+                <linearGradient id="checkGrad3" x1="12" y1="14" x2="28" y2="25"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#7b61ff"/></linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="nav-brand-name">PredictIQ</span>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="market-status">
+          <span class="market-dot" id="market-dot"></span>
+          <span id="market-status-text" class="market-status-text">Market Open</span>
+        </div>
+      </div>
+      <div class="navbar-center">
+        <!-- Symbol Selector -->
+        <div class="symbol-selector">
+          <button class="symbol-btn active" id="sym-AAPL" onclick="selectSymbol('AAPL')">AAPL</button>
+          <button class="symbol-btn" id="sym-GOOGL" onclick="selectSymbol('GOOGL')">GOOGL</button>
+          <button class="symbol-btn" id="sym-MSFT" onclick="selectSymbol('MSFT')">MSFT</button>
+          <button class="symbol-btn" id="sym-TSLA" onclick="selectSymbol('TSLA')">TSLA</button>
+          <button class="symbol-btn" id="sym-NVDA" onclick="selectSymbol('NVDA')">NVDA</button>
+          <button class="symbol-btn" id="sym-AMZN" onclick="selectSymbol('AMZN')">AMZN</button>
+        </div>
+      </div>
+      <div class="navbar-right">
+        <div class="nav-live-badge">
+          <span class="live-dot"></span>LIVE
+        </div>
+        <div class="nav-time" id="nav-time"></div>
+        <div class="nav-user" id="nav-user">
+          <div class="user-avatar" id="user-avatar">J</div>
+          <span class="user-name" id="user-display-name">User</span>
+        </div>
+        <button class="btn-logout" id="logout-btn" onclick="handleLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </div>
+    </nav>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <div class="dashboard-layout">
+
+      <!-- LEFT: Main Chart Area -->
+      <main class="chart-area">
+
+        <!-- Stock Header -->
+        <div class="stock-header glass-card">
+          <div class="stock-identity">
+            <div class="stock-ticker" id="stock-ticker-display">AAPL</div>
+            <div class="stock-company" id="stock-company-display">Apple Inc.</div>
+          </div>
+          <div class="stock-price-block">
+            <div class="stock-price" id="stock-price-display">$—</div>
+            <div class="price-badge" id="price-badge">
+              <span id="price-change-icon">▲</span>
+              <span id="price-change-value">+0.00%</span>
+              <span id="price-change-amount">(+$0.00)</span>
+            </div>
+          </div>
+          <div class="stock-meta-row">
+            <div class="meta-item">
+              <span class="meta-label">Open</span>
+              <span class="meta-value" id="meta-open">—</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">High</span>
+              <span class="meta-value" id="meta-high">—</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Low</span>
+              <span class="meta-value" id="meta-low">—</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Volume</span>
+              <span class="meta-value" id="meta-volume">—</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Market Cap</span>
+              <span class="meta-value" id="meta-mktcap">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Controls -->
+        <div class="chart-controls glass-card">
+          <div class="timeframe-group">
+            <button class="tf-btn" onclick="setTimeframe('1W')">1W</button>
+            <button class="tf-btn active" onclick="setTimeframe('1M')">1M</button>
+            <button class="tf-btn" onclick="setTimeframe('3M')">3M</button>
+            <button class="tf-btn" onclick="setTimeframe('6M')">6M</button>
+            <button class="tf-btn" onclick="setTimeframe('1Y')">1Y</button>
+          </div>
+          <div class="chart-type-group">
+            <button class="chart-type-btn active" id="ct-candle" onclick="setChartType('candle')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="2" width="2" height="4"/><rect x="5" y="6" width="6" height="12" rx="1"/><rect x="7" y="18" width="2" height="4"/><rect x="15" y="5" width="2" height="3"/><rect x="13" y="8" width="6" height="8" rx="1"/><rect x="15" y="16" width="2" height="3"/></svg>
+              Candles
+            </button>
+            <button class="chart-type-btn" id="ct-line" onclick="setChartType('line')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Line
+            </button>
+          </div>
+          <div class="prediction-toggle">
+            <label class="toggle-switch" title="Toggle AI Predictions">
+              <input type="checkbox" id="prediction-toggle" checked onchange="togglePredictions()" />
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="toggle-label">
+              <span class="pred-dot"></span>
+              AI Predictions
+            </span>
+          </div>
+        </div>
+
+        <!-- TradingView Chart -->
+        <div class="chart-container glass-card">
+          <div id="tv-chart" class="tv-chart"></div>
+          <div class="chart-loading" id="chart-loading">
+            <div class="mini-loader"></div>
+            <span>Loading market data...</span>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--candle"></span>
+              <span id="legend-symbol-label">AAPL</span> Historical
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--pred"></span>
+              LSTM Prediction
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Cards Row -->
+        <div class="kpi-row">
+          <div class="kpi-card glass-card">
+            <div class="kpi-icon kpi-icon--blue">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Current Price</span>
+              <span class="kpi-value" id="kpi-price">$—</span>
+              <span class="kpi-sub" id="kpi-price-change">—</span>
+            </div>
+          </div>
+          <div class="kpi-card glass-card">
+            <div class="kpi-icon kpi-icon--green">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">Predicted Price (30d)</span>
+              <span class="kpi-value" id="kpi-predicted">$—</span>
+              <span class="kpi-sub" id="kpi-predicted-change">AI Forecast</span>
+            </div>
+          </div>
+          <div class="kpi-card glass-card">
+            <div class="kpi-icon kpi-icon--purple">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">52-Week Range</span>
+              <span class="kpi-value" id="kpi-52w">—</span>
+              <span class="kpi-sub" id="kpi-52w-sub">High / Low</span>
+            </div>
+          </div>
+          <div class="kpi-card glass-card">
+            <div class="kpi-icon kpi-icon--orange">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div class="kpi-content">
+              <span class="kpi-label">AI Confidence</span>
+              <span class="kpi-value" id="kpi-confidence">—%</span>
+              <span class="kpi-sub" id="kpi-signal">Signal</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- RIGHT: AI Assistant Panel -->
+      <aside class="assistant-panel">
+
+        <!-- Watchlist -->
+        <div class="watchlist-card glass-card">
+          <h3 class="panel-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Watchlist
+          </h3>
+          <div class="watchlist-items" id="watchlist-items">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- AI Assistant Chat -->
+        <div class="chat-panel glass-card">
+          <div class="chat-header">
+            <div class="chat-title-row">
+              <div class="ai-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+              </div>
+              <div>
+                <h3 class="panel-title" style="margin-bottom:0">Groq AI Assistant</h3>
+                <span class="ai-status-text">Powered by Llama 3.3 70B</span>
+              </div>
+            </div>
+            <div class="ai-online-badge">
+              <span class="ai-dot"></span>Online
+            </div>
+          </div>
+
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-message chat-message--ai">
+              <div class="msg-avatar">AI</div>
+              <div class="msg-bubble">
+                <p>👋 Hello! I'm your AI financial assistant powered by Groq. I can analyze <strong id="current-symbol-mention">AAPL</strong> stock data, predict trends, and provide business insights. What would you like to know?</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="quick-actions" id="quick-actions">
+            <button class="quick-btn" onclick="sendQuickMessage('Analyze the current market trend for the selected stock and provide a buy/sell recommendation.')">📊 Trend Analysis</button>
+            <button class="quick-btn" onclick="sendQuickMessage('What are the key risk factors for this stock? Give me a concise risk assessment.')">⚠️ Risk Assessment</button>
+            <button class="quick-btn" onclick="sendQuickMessage('Provide a 30-day growth forecast and business strategy insights based on the current stock performance.')">📈 Growth Forecast</button>
+            <button class="quick-btn" onclick="sendQuickMessage('Which sector is this stock in? How is the overall sector performing and what are the macro trends?')">🌐 Sector Trends</button>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+              <textarea id="chat-input" class="chat-textarea" placeholder="Ask about stocks, markets, or business strategy..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResizeTextarea(this)"></textarea>
+              <button class="chat-send-btn" id="chat-send-btn" onclick="sendChatMessage()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/stock-api.js"></script>
+  <script src="js/assistant.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

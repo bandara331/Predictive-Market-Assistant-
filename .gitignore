@@ -1,0 +1,51 @@
+# ─── Python ─────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# ─── Virtual environments ────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ─── TensorFlow / Keras ─────────────────────────────────────
+ml-service/saved_models/
+*.keras
+*.h5
+*.pkl
+
+# ─── Java / Maven ───────────────────────────────────────────
+target/
+*.class
+*.war
+*.jar
+!backend/src/
+
+# ─── Environment ────────────────────────────────────────────
+.env
+.env.local
+.env.production
+.env.staging
+
+# ─── IDEs ───────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/settings.json
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Logs ───────────────────────────────────────────────────
+*.log
+logs/
+
+# ─── Docker ─────────────────────────────────────────────────
+docker-compose.override.yml
