@@ -82,6 +82,13 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
     }
 
+    /* ─── UserDetailsService contract (delegates to loadUserByEmail) ─── */
+    @Override
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername(String email) {
+        return loadUserByEmail(email);
+    }
+
     /* ─── Helper ─── */
     private AuthResponse buildAuthResponse(String token, User user) {
         return AuthResponse.builder()
