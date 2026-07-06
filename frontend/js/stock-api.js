@@ -10,7 +10,7 @@ const StockAPI = (() => {
   const BACKEND_URL    = 'https://predictive-market-assistant-production.up.railway.app/api/dashboard';
   const FINNHUB_BASE   = 'https://finnhub.io/api/v1';
   // ⚠️  Replace with your Finnhub API key from https://finnhub.io (free signup)
-  const FINNHUB_API_KEY = window.FINNHUB_API_KEY || 'YOUR_FINNHUB_KEY_HERE';
+  const FINNHUB_API_KEY = window.FINNHUB_API_KEY || 'd961b89r01qifmv392rgd961b89r01qifmv392s0';
 
   let currentSymbol    = 'AAPL';
   let currentTimeframe = '1M';
