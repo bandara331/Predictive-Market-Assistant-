@@ -28,11 +28,11 @@ const StockAPI = (() => {
 
   /* ─── Timeframe → Finnhub resolution + days back ─── */
   const TF_MAP = {
-    '1W': { resolution: '60',  days: 7   },
-    '1M': { resolution: 'D',   days: 30  },
-    '3M': { resolution: 'D',   days: 90  },
-    '6M': { resolution: 'D',   days: 180 },
-    '1Y': { resolution: 'W',   days: 365 }
+    '1W': { resolution: 'D',  days: 7   },
+    '1M': { resolution: 'D',  days: 30  },
+    '3M': { resolution: 'D',  days: 90  },
+    '6M': { resolution: 'D',  days: 180 },
+    '1Y': { resolution: 'W',  days: 365 }
   };
 
   /* ─── Fetch OHLCV candles from Finnhub ─── */
