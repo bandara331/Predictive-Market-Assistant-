@@ -1,203 +1,220 @@
 /**
- * chart.js — TradingView Lightweight Charts Integration
- * Handles: Chart init, candlestick series, LSTM prediction line, resize
+ * chart.js — ApexCharts Integration
+ * Candlestick + AI Prediction Line using ApexCharts v3
  */
 
 const ChartModule = (() => {
-  let chart         = null;
-  let candleSeries  = null;
-  let lineSeries    = null;
-  let predSeries    = null;
-  let currentType   = 'candle';
-  let showPreds     = true;
+  let apexChart    = null;
+  let currentType  = 'candle';
+  let showPreds    = true;
+  let lastCandles  = [];
+  let lastPreds    = [];
 
-  const CHART_BG      = '#131722';
-  const GRID_COLOR    = 'rgba(255,255,255,0.04)';
-  const BORDER_COLOR  = 'rgba(255,255,255,0.08)';
-  const TEXT_COLOR    = '#8892a4';
-  const GREEN_UP      = '#26a69a';
-  const RED_DOWN      = '#ef5350';
-  const PRED_COLOR    = '#f7931a';
+  const CHART_BG   = '#131722';
+  const GREEN      = '#26a69a';
+  const RED        = '#ef5350';
+  const PRED_COLOR = '#f7931a';
+  const GRID_COLOR = 'rgba(255,255,255,0.04)';
+  const TEXT_COLOR = '#8892a4';
+
+  /* ─── Build ApexCharts options ─── */
+  function _buildOptions(candleData, predData, type) {
+    const series = [];
+
+    // Main price series
+    if (type === 'candle') {
+      series.push({
+        name: 'Price',
+        type: 'candlestick',
+        data: candleData
+      });
+    } else {
+      series.push({
+        name: 'Close',
+        type: 'line',
+        data: candleData.map(d => ({ x: d.x, y: d.y[3] })) // close price
+      });
+    }
+
+    // AI Prediction series
+    if (showPreds && predData.length) {
+      series.push({
+        name: 'AI Prediction',
+        type: 'line',
+        data: predData
+      });
+    }
+
+    return {
+      series,
+      chart: {
+        type: type === 'candle' ? 'candlestick' : 'line',
+        background: CHART_BG,
+        foreColor: TEXT_COLOR,
+        fontFamily: "'Inter', sans-serif",
+        height: '100%',
+        animations: { enabled: false },
+        toolbar: {
+          show: true,
+          tools: { download: false, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true }
+        },
+        zoom: { enabled: true }
+      },
+      theme: { mode: 'dark' },
+      plotOptions: {
+        candlestick: {
+          colors: { upward: GREEN, downward: RED },
+          wick: { useFillColor: true }
+        }
+      },
+      colors: [GREEN, PRED_COLOR],
+      stroke: {
+        curve: 'smooth',
+        width: [1, 2],
+        dashArray: [0, 4]
+      },
+      grid: {
+        borderColor: GRID_COLOR,
+        strokeDashArray: 2,
+        xaxis: { lines: { show: true } },
+        yaxis: { lines: { show: true } }
+      },
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          style: { colors: TEXT_COLOR, fontSize: '11px' },
+          datetimeFormatter: { year: 'yyyy', month: 'MMM yy', day: 'dd MMM', hour: 'HH:mm' }
+        },
+        axisBorder: { color: 'rgba(255,255,255,0.08)' },
+        axisTicks: { color: 'rgba(255,255,255,0.08)' }
+      },
+      yaxis: {
+        tooltip: { enabled: true },
+        labels: {
+          style: { colors: TEXT_COLOR, fontSize: '11px' },
+          formatter: v => v ? `$${v.toFixed(2)}` : ''
+        }
+      },
+      tooltip: {
+        theme: 'dark',
+        shared: false,
+        x: { format: 'dd MMM yyyy' },
+        y: {
+          formatter: (val, { seriesIndex, dataPointIndex, w }) => {
+            if (w.config.series[seriesIndex].type === 'candlestick') return '';
+            return val ? `$${val.toFixed(2)}` : '';
+          }
+        }
+      },
+      legend: {
+        show: true,
+        position: 'top',
+        horizontalAlign: 'left',
+        labels: { colors: TEXT_COLOR },
+        markers: { radius: 2 }
+      }
+    };
+  }
 
   /* ─── Initialize Chart ─── */
   function init() {
     const container = document.getElementById('tv-chart');
-    if (!container || chart) return;
+    if (!container || apexChart) return;
 
-    chart = LightweightCharts.createChart(container, {
-      layout: {
-        background:  { type: 'solid', color: CHART_BG },
-        textColor:   TEXT_COLOR,
-        fontFamily:  "'Inter', sans-serif",
-        fontSize:    11,
-      },
-      grid: {
-        vertLines:   { color: GRID_COLOR, style: LightweightCharts.LineStyle.Dotted },
-        horzLines:   { color: GRID_COLOR, style: LightweightCharts.LineStyle.Dotted },
-      },
-      crosshair: {
-        mode: LightweightCharts.CrosshairMode.Normal,
-        vertLine: {
-          color: 'rgba(0,212,255,0.4)',
-          width: 1,
-          style: LightweightCharts.LineStyle.Dashed,
-          labelBackgroundColor: '#0f1424',
-        },
-        horzLine: {
-          color: 'rgba(0,212,255,0.4)',
-          width: 1,
-          labelBackgroundColor: '#0f1424',
-        },
-      },
-      rightPriceScale: {
-        borderColor:  BORDER_COLOR,
-        scaleMargins: { top: 0.1, bottom: 0.15 },
-      },
-      timeScale: {
-        borderColor:         BORDER_COLOR,
-        timeVisible:         true,
-        secondsVisible:      false,
-        rightBarStaysOnScroll: true,
-        fixLeftEdge:         true,
-      },
-      handleScale: { axisPressedMouseMove: true, mouseWheel: true, pinch: true },
-      handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true },
-    });
+    // Make sure container has height
+    container.style.height = '100%';
+    container.style.minHeight = '340px';
 
-    _addCandleSeries();
-    _addPredSeries();
-    _setupResizeObserver(container);
-    _setupCrosshairSubscription();
+    const opts = _buildOptions([], [], 'candle');
+    apexChart = new ApexCharts(container, opts);
+    apexChart.render();
+    console.log('✅ ApexCharts initialized');
   }
 
-  function _addCandleSeries() {
-    candleSeries = chart.addCandlestickSeries({
-      upColor:          GREEN_UP,
-      downColor:        RED_DOWN,
-      borderUpColor:    GREEN_UP,
-      borderDownColor:  RED_DOWN,
-      wickUpColor:      GREEN_UP,
-      wickDownColor:    RED_DOWN,
-    });
-  }
-
-  function _addLineSeries() {
-    lineSeries = chart.addLineSeries({
-      color:      GREEN_UP,
-      lineWidth:  2,
-      crosshairMarkerVisible: true,
-      crosshairMarkerRadius:  4,
-    });
-  }
-
-  function _addPredSeries() {
-    predSeries = chart.addLineSeries({
-      color:          PRED_COLOR,
-      lineWidth:      2,
-      lineStyle:      LightweightCharts.LineStyle.Dashed,
-      crosshairMarkerVisible: true,
-      crosshairMarkerRadius:  4,
-      crosshairMarkerBorderColor: PRED_COLOR,
-      lastValueVisible: true,
-      priceLineVisible: true,
-      priceLineColor:   PRED_COLOR,
-      priceLineWidth:   1,
-      priceLineStyle:   LightweightCharts.LineStyle.Dashed,
-      title:            'AI Pred',
-    });
-  }
-
-  function _setupResizeObserver(container) {
-    const ro = new ResizeObserver(entries => {
-      const { width, height } = entries[0].contentRect;
-      chart.applyOptions({ width: Math.floor(width), height: Math.floor(height) });
-    });
-    ro.observe(container);
-  }
-
-  function _setupCrosshairSubscription() {
-    chart.subscribeCrosshairMove(param => {
-      if (!param || !param.time || !candleSeries) return;
-      const candle = param.seriesData?.get(candleSeries);
-      if (!candle) return;
-      // Update header price on hover
-      document.getElementById('stock-price-display').textContent = `$${candle.close.toFixed(2)}`;
-    });
-  }
-
-  /* ─── Timestamp helper ─── */
-  function _toChartTime(ts) {
-    // TradingView expects UNIX seconds for intraday, or 'YYYY-MM-DD' for daily+
-    // Always use date string to avoid timezone issues
-    const d = new Date(ts * 1000);
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(d.getUTCDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
-  }
-
-  /* ─── Data Loading ─── */
+  /* ─── Load Candle Data ─── */
   function loadCandles(ohlcvArray) {
-    if (!candleSeries) return;
-    // Convert timestamps → 'YYYY-MM-DD', deduplicate same-day entries, sort ascending
-    const seen = new Set();
-    const sorted = ohlcvArray
-      .map(d => ({ ...d, time: _toChartTime(d.time) }))
-      .filter(d => { if (seen.has(d.time)) return false; seen.add(d.time); return true; })
-      .sort((a, b) => (a.time < b.time ? -1 : 1));
-    candleSeries.setData(sorted);
-    chart.timeScale().fitContent();
+    if (!apexChart) { console.warn('Chart not initialized'); return; }
+
+    // Convert to ApexCharts candlestick format
+    // ApexCharts expects: { x: Date | timestamp_ms, y: [open, high, low, close] }
+    lastCandles = ohlcvArray
+      .map(d => ({
+        x: d.time * 1000,           // convert seconds → milliseconds
+        y: [d.open, d.high, d.low, d.close]
+      }))
+      .sort((a, b) => a.x - b.x);
+
+    _redraw();
   }
 
-  function loadLine(closePriceArray) {
-    if (!lineSeries) return;
-    const seen = new Set();
-    const sorted = closePriceArray
-      .map(d => ({ ...d, time: _toChartTime(d.time) }))
-      .filter(d => { if (seen.has(d.time)) return false; seen.add(d.time); return true; })
-      .sort((a, b) => (a.time < b.time ? -1 : 1));
-    lineSeries.setData(sorted);
-    chart.timeScale().fitContent();
-  }
-
+  /* ─── Load Prediction Line ─── */
   function loadPredictions(predArray) {
-    if (!predSeries) return;
-    if (!showPreds) { predSeries.setData([]); return; }
-    const seen = new Set();
-    const sorted = predArray
-      .map(d => ({ ...d, time: _toChartTime(d.time) }))
-      .filter(d => { if (seen.has(d.time)) return false; seen.add(d.time); return true; })
-      .sort((a, b) => (a.time < b.time ? -1 : 1));
-    predSeries.setData(sorted);
+    if (!apexChart) return;
+    if (!showPreds) { lastPreds = []; _redraw(); return; }
+
+    lastPreds = predArray
+      .map(d => ({
+        x: d.time * 1000,
+        y: parseFloat(d.value.toFixed(2))
+      }))
+      .sort((a, b) => a.x - b.x);
+
+    _redraw();
+  }
+
+  /* ─── Redraw with current data ─── */
+  function _redraw() {
+    if (!apexChart) return;
+
+    const series = [];
+
+    if (currentType === 'candle') {
+      series.push({ name: 'Price', type: 'candlestick', data: lastCandles });
+    } else {
+      series.push({
+        name: 'Close',
+        type: 'line',
+        data: lastCandles.map(d => ({ x: d.x, y: d.y[3] }))
+      });
+    }
+
+    if (showPreds && lastPreds.length) {
+      series.push({ name: 'AI Prediction', type: 'line', data: lastPreds });
+    }
+
+    apexChart.updateSeries(series, true);
   }
 
   function clearPredictions() {
-    predSeries?.setData([]);
+    lastPreds = [];
+    _redraw();
   }
 
   /* ─── Chart Type Switching ─── */
   function setType(type) {
     currentType = type;
+
     document.querySelectorAll('.chart-type-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`ct-${type}`)?.classList.add('active');
 
-    if (type === 'candle') {
-      if (lineSeries) { chart.removeSeries(lineSeries); lineSeries = null; }
-      if (!candleSeries) _addCandleSeries();
-    } else {
-      if (candleSeries) { chart.removeSeries(candleSeries); candleSeries = null; }
-      if (!lineSeries) _addLineSeries();
+    // Update chart type in ApexCharts options
+    if (apexChart) {
+      apexChart.updateOptions({
+        chart: { type: type === 'candle' ? 'candlestick' : 'line' }
+      }, false, false);
     }
+
+    _redraw();
   }
 
   function togglePredictions(show) {
     showPreds = show;
     if (!show) {
-      predSeries?.setData([]);
+      lastPreds = [];
     } else {
-      // Re-request data via event
       window.dispatchEvent(new CustomEvent('reloadPredictions'));
     }
+    _redraw();
   }
 
   function setTimeframe(tf) {
@@ -208,24 +225,22 @@ const ChartModule = (() => {
     window.dispatchEvent(new CustomEvent('timeframeChange', { detail: tf }));
   }
 
+  // Line series (kept for API compat)
+  function loadLine(closePriceArray) {
+    lastCandles = closePriceArray.map(d => ({
+      x: d.time * 1000,
+      y: [d.value, d.value, d.value, d.value]
+    }));
+    _redraw();
+  }
+
   return { init, loadCandles, loadLine, loadPredictions, clearPredictions, setType, togglePredictions, setTimeframe };
 })();
 
-/* ─── Global Binding (called from HTML onclick) ─── */
-function setChartType(type) {
-  ChartModule.setType(type);
-}
-
+/* ─── Global bindings ─── */
+function setChartType(type) { ChartModule.setType(type); }
 function togglePredictions() {
   const checked = document.getElementById('prediction-toggle')?.checked;
   ChartModule.togglePredictions(checked);
 }
-
-function setTimeframe(tf) {
-  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-  // Find the button that triggered the click and set active
-  document.querySelectorAll('.tf-btn').forEach(btn => {
-    if (btn.textContent.trim() === tf) btn.classList.add('active');
-  });
-  window.dispatchEvent(new CustomEvent('timeframeChange', { detail: tf }));
-}
+function setTimeframe(tf) { ChartModule.setTimeframe(tf); }
