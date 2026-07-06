@@ -4,7 +4,7 @@
  */
 
 const StockAPI = (() => {
-  const BACKEND_URL = 'http://localhost:8080/api/dashboard';
+  const BACKEND_URL = 'http://localhost:8081/api/dashboard';
   const ML_URL      = 'http://localhost:8000';
 
   let currentSymbol   = 'AAPL';

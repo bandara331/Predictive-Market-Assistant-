@@ -4,11 +4,11 @@
  */
 
 const AssistantModule = (() => {
-  const BACKEND_CHAT_URL = 'http://localhost:8080/api/dashboard/chat';
+  const BACKEND_CHAT_URL = 'http://localhost:8081/api/dashboard/chat';
   // Direct Groq fallback (used when backend is offline)
-  const GROQ_API_URL  = 'https://api.groq.com/openai/v1/chat/completions';
-  const GROQ_API_KEY  = 'YOUR_GROQ_API_KEY_HERE'; // Replace with your key
-  const GROQ_MODEL    = 'llama-3.3-70b-versatile';
+  const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+  const GROQ_API_KEY = ''; // GitHub Push Protection: Key removed
+  const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
   let isStreaming = false;
   let messageHistory = [
@@ -38,9 +38,9 @@ Keep responses focused and under 200 words unless asked for detail.`
       <div class="msg-avatar">${avatarText}</div>
       <div class="msg-bubble" id="${bubbleId}">
         ${streaming
-          ? '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>'
-          : `<p>${escapeHtml(content)}</p>`
-        }
+        ? '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>'
+        : `<p>${escapeHtml(content)}</p>`
+      }
       </div>
     `;
 
@@ -78,7 +78,7 @@ Keep responses focused and under 200 words unless asked for detail.`
     if (isStreaming || !userText.trim()) return;
     isStreaming = true;
 
-    const symbol  = StockAPI.getCurrentSymbol?.() || 'AAPL';
+    const symbol = StockAPI.getCurrentSymbol?.() || 'AAPL';
     const company = StockAPI.getCompanyName?.(symbol) || symbol;
 
     // Append user message
@@ -171,7 +171,7 @@ Keep responses focused and under 200 words unless asked for detail.`
 
   /* ─── Demo Responses (when no API key) ─── */
   function generateDemoResponse(question) {
-    const symbol  = StockAPI.getCurrentSymbol?.() || 'AAPL';
+    const symbol = StockAPI.getCurrentSymbol?.() || 'AAPL';
     const q = question.toLowerCase();
 
     if (q.includes('risk')) {
@@ -195,7 +195,7 @@ Keep responses focused and under 200 words unless asked for detail.`
 /* ─── Global Bindings (HTML onclick) ─── */
 function sendChatMessage() {
   const input = document.getElementById('chat-input');
-  const text  = input?.value?.trim();
+  const text = input?.value?.trim();
   if (text) AssistantModule.sendMessage(text);
 }
 

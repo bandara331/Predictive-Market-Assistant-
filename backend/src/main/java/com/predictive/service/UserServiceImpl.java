@@ -4,6 +4,7 @@ import com.predictive.config.JwtUtil;
 import com.predictive.dto.AuthResponse;
 import com.predictive.dto.LoginRequest;
 import com.predictive.dto.RegisterRequest;
+import com.predictive.exception.UserAlreadyExistsException;
 import com.predictive.model.User;
 import com.predictive.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("An account with email '" + request.getEmail() + "' already exists.");
+            throw new UserAlreadyExistsException(request.getEmail());
         }
 
         User user = User.builder()

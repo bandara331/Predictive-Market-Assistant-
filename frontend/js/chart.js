@@ -179,7 +179,9 @@ const ChartModule = (() => {
 
   function setTimeframe(tf) {
     document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-    event?.currentTarget?.classList.add('active');
+    document.querySelectorAll('.tf-btn').forEach(btn => {
+      if (btn.textContent.trim() === tf) btn.classList.add('active');
+    });
     window.dispatchEvent(new CustomEvent('timeframeChange', { detail: tf }));
   }
 

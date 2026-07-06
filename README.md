@@ -1,282 +1,309 @@
-# PredictIQ — AI-Powered Predictive Market Assistant
+# PredictIQ — AI Business & Financial Dashboard
 
-> **Real-time stock predictions · Groq AI insights · LSTM deep learning · JWT-secured dashboard**
-
----
-
-## Overview
-
-PredictIQ is a full-stack AI financial intelligence platform that combines:
-
-- 📈 **TradingView Lightweight Charts** for professional candlestick/line charting
-- 🤖 **LSTM Neural Network** (TensorFlow) for 30-day stock price forecasting
-- 💬 **Groq AI** (Llama 3.3 70B) for natural-language financial analysis
-- 🔐 **Spring Boot + JWT** for secure, stateless authentication
-- 🎨 **Glassmorphism UI** with dark-mode, particle animations, and live market data
+A full-stack **AI-powered stock market prediction platform** built as a Software Engineering internship project. Features real-time OHLCV charts, LSTM neural network price predictions, and a Groq AI-powered financial analyst chat assistant.
 
 ---
 
-## Architecture
+## 🏗️ Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        BROWSER (Frontend)                        │
-│  HTML + Vanilla CSS + JS  │  TradingView Charts  │  Auth Flow   │
-└────────────────────┬────────────────────────────────────────────┘
-                     │  JWT-secured REST API
-┌────────────────────▼────────────────────────────────────────────┐
-│              Spring Boot Backend  (:8080)                        │
-│   AuthController  │  DashboardController  │  StockService        │
-│   JwtAuthFilter   │  UserService          │  SecurityConfig      │
-└───────┬─────────────────────────────┬───────────────────────────┘
-        │ JDBC                        │ HTTP
-┌───────▼──────────┐        ┌────────▼────────────────────────────┐
-│   PostgreSQL      │        │   FastAPI ML Microservice  (:8000)   │
-│   :5432           │        │   StockPredictor (LSTM + yfinance)   │
-│   users table     │        │   StockFetcher  │  LSTMModel         │
-│   stock_data      │        └─────────────────────────────────────┘
-└───────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                        FRONTEND                             │
+│  index.html  ←→  auth.js + stock-api.js + chart.js         │
+│                  dashboard.js + assistant.js                │
+│  (TradingView Lightweight Charts, Groq AI Chat)             │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ REST / JWT
+┌──────────────────▼──────────────────────────────────────────┐
+│                SPRING BOOT BACKEND (Port 8080)              │
+│  AuthController  ←→  UserServiceImpl  ←→  UserRepository   │
+│  DashboardController ←→ StockServiceImpl ←→ StockRepository │
+│  SecurityConfig (JWT) + GlobalExceptionHandler              │
+└──────────────┬────────────────────┬────────────────────────-┘
+               │ JPA/PostgreSQL      │ REST
+  ┌────────────▼──────────┐   ┌─────▼─────────────────────────┐
+  │  PostgreSQL (Port 5432)│   │  FastAPI ML Service (Port 8000)│
+  │  users table           │   │  LSTM TensorFlow model         │
+  │  stock_data table      │   │  yfinance data fetcher         │
+  └────────────────────────┘   └────────────────────────────────┘
 ```
 
 ---
 
-## Tech Stack
+## 🚀 Quick Start
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | HTML5, Vanilla CSS (Glassmorphism), JavaScript ES6+ |
-| Charts | TradingView Lightweight Charts |
-| Backend | Java 17, Spring Boot 3.2, Spring Security, JWT (JJWT) |
-| Database | PostgreSQL 16 |
-| ML Service | Python 3.11, FastAPI, TensorFlow 2.16, scikit-learn |
-| AI Chat | Groq API (Llama 3.3 70B) |
-| Container | Docker + Docker Compose |
-
----
-
-## Project Structure
-
-```
-predictive-market-assistant/
-├── frontend/
-│   ├── index.html              # Single-page app (auth + dashboard)
-│   ├── css/
-│   │   └── styles.css          # Full design system + components
-│   └── js/
-│       ├── auth.js             # JWT auth, login/register, demo mode
-│       ├── chart.js            # TradingView chart integration
-│       ├── stock-api.js        # Stock data, predictions, watchlist
-│       ├── assistant.js        # Groq AI chat panel
-│       └── dashboard.js        # App orchestrator, clock, market status
-│
-├── backend/
-│   ├── Dockerfile
-│   ├── pom.xml                 # Spring Boot 3.2, JWT, JPA, Lombok
-│   └── src/main/java/com/predictive/
-│       ├── config/             # SecurityConfig, JwtUtil, JwtAuthFilter
-│       ├── controller/         # AuthController, DashboardController
-│       ├── dto/                # RegisterRequest, LoginRequest, AuthResponse, StockDataDTO
-│       ├── model/              # User (UserDetails), BaseEntity, StockData, Role
-│       ├── repository/         # UserRepository, StockDataRepository
-│       └── service/            # UserService/Impl, StockService/Impl
-│
-├── ml-service/
-│   ├── Dockerfile
-│   ├── main.py                 # FastAPI app entry point
-│   ├── requirements.txt
-│   ├── data/
-│   │   └── stock_fetcher.py    # yfinance wrapper with caching
-│   └── model/
-│       ├── lstm_model.py       # TF/Keras 2-layer LSTM architecture
-│       └── predictor.py        # End-to-end: fetch → train/load → forecast
-│
-├── docker-compose.yml          # Full stack local development
-├── .env.example                # Environment variable template
-└── .gitignore
-```
-
----
-
-## Quick Start
-
-### Option A — Docker Compose (Recommended)
+### Option A — Docker (Recommended, zero setup)
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/yourusername/predictive-market-assistant.git
+# 1. Clone the repo
+git clone <repo-url>
 cd predictive-market-assistant
 
-# 2. Set up environment variables
+# 2. Copy and configure environment
 cp .env.example .env
-# Edit .env — add your GROQ_API_KEY (get it free at console.groq.com)
+# Edit .env and add your GROQ_API_KEY
 
 # 3. Start all services
 docker-compose up -d
 
-# 4. Open the dashboard
+# 4. Open the frontend
 # Open frontend/index.html in your browser
+# Backend: http://localhost:8080
+# ML Service: http://localhost:8000/docs
 ```
 
-### Option B — Manual Setup
+### Option B — Local Development (without Docker)
 
-**Prerequisites:** Java 17+, Maven, Python 3.11+, PostgreSQL 16
+#### Prerequisites
+- Java 17+, Maven 3.9+
+- Python 3.11+
+- PostgreSQL 15+ (or skip — use local H2 profile)
+- Node.js (optional, for a local HTTP server)
 
-#### 1. Database Setup
-```sql
--- Create database (PostgreSQL)
-createdb predictive_db
-psql predictive_db < backend/src/main/resources/db-init.sql
-```
+#### Backend (Spring Boot)
 
-#### 2. Backend (Spring Boot)
 ```bash
 cd backend
 
-# Set your config in application.properties or via env vars
-export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/predictive_db
-export SPRING_DATASOURCE_PASSWORD=your_password
-export GROQ_API_KEY=your_groq_api_key_here
+# With H2 (no PostgreSQL needed):
+mvn spring-boot:run -Dspring-boot.run.profiles=local
 
+# With PostgreSQL (update application.properties first):
 mvn spring-boot:run
-# Runs on http://localhost:8080
 ```
 
-#### 3. ML Service (FastAPI)
+- API: `http://localhost:8080` (local profile: `8081`)
+- H2 Console: `http://localhost:8081/h2-console`
+
+#### ML Service (FastAPI)
+
 ```bash
 cd ml-service
-
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate      # Linux/macOS
-# venv\Scripts\activate       # Windows
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Start the service
 python main.py
-# Runs on http://localhost:8000
 ```
 
-#### 4. Frontend
+- API Docs: `http://localhost:8000/docs`
+
+#### Frontend
+
+Simply open `frontend/index.html` directly in your browser, or use a local server:
+
 ```bash
-# Simply open in a browser — no build step needed!
-# Works with any static file server:
-cd frontend
+# Python simple server from project root:
 python -m http.server 3000
-# Then visit http://localhost:3000
+# Then visit: http://localhost:3000/frontend/
 ```
 
 ---
 
-## API Endpoints
+## 📁 Project Structure
 
-### Auth (Public)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/register` | Create new user account |
-| `POST` | `/api/auth/login` | Authenticate and receive JWT |
-| `POST` | `/api/auth/logout` | Audit logout (JWT is stateless) |
-
-### Dashboard (JWT Required)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/dashboard/stocks/{symbol}?timeframe=1M` | Historical OHLCV data |
-| `GET` | `/api/dashboard/predict/{symbol}` | LSTM 30-day price forecast |
-| `POST` | `/api/dashboard/chat` | Groq AI chat response |
-| `GET` | `/api/dashboard/health` | Backend health check |
-
-### ML Service (Internal)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/predict/{symbol}` | LSTM prediction (30 days) |
-| `GET` | `/health` | ML service status |
-| `GET` | `/symbols` | Supported stock symbols |
-
----
-
-## Configuration
-
-### Backend (`application.properties`)
-
-| Property | Description |
-|----------|-------------|
-| `spring.datasource.url` | PostgreSQL connection URL |
-| `jwt.secret` | JWT signing key (min 256-bit) |
-| `jwt.expiration` | Token lifetime in milliseconds |
-| `ml.service.url` | ML microservice base URL |
-| `groq.api.key` | Your Groq API key |
-| `groq.model` | Groq model (default: llama-3.3-70b-versatile) |
-
-### Frontend (`js/assistant.js`)
-
-Replace `YOUR_GROQ_API_KEY_HERE` with your Groq API key for direct browser-to-Groq fallback:
-```javascript
-const GROQ_API_KEY = 'gsk_your_key_here';
+```
+predictive-market-assistant/
+├── frontend/                       # Pure HTML/CSS/JS SPA
+│   ├── index.html                  # Single-page app (auth + dashboard)
+│   ├── css/styles.css              # Full dark-mode design system
+│   └── js/
+│       ├── auth.js                 # JWT login/register, demo mode fallback
+│       ├── chart.js                # TradingView Lightweight Charts integration
+│       ├── stock-api.js            # OHLCV fetching, watchlist, synthetic data
+│       ├── assistant.js            # Groq AI chat panel
+│       └── dashboard.js            # App orchestrator, clock, market status
+│
+├── backend/                        # Spring Boot 3 REST API
+│   ├── src/main/java/com/predictive/
+│   │   ├── PredictiveMarketApplication.java
+│   │   ├── config/
+│   │   │   ├── AppConfig.java      # CORS + RestTemplate bean
+│   │   │   ├── SecurityConfig.java # JWT-based stateless security
+│   │   │   ├── JwtUtil.java        # JJWT 0.12 token utility
+│   │   │   └── JwtAuthFilter.java  # Per-request JWT validation filter
+│   │   ├── controller/
+│   │   │   ├── AuthController.java # POST /api/auth/register, /login, /logout
+│   │   │   └── DashboardController.java # GET /api/dashboard/stocks/{symbol}, /predict/{symbol}, POST /chat
+│   │   ├── service/
+│   │   │   ├── UserService.java    # Interface (OOP Polymorphism)
+│   │   │   ├── UserServiceImpl.java
+│   │   │   ├── StockService.java
+│   │   │   └── StockServiceImpl.java # Proxies ML & Groq, synthetic fallback
+│   │   ├── model/
+│   │   │   ├── BaseEntity.java     # Abstract base with audit fields (OOP Inheritance)
+│   │   │   ├── User.java           # UserDetails + JPA entity
+│   │   │   ├── StockData.java      # OHLCV entity
+│   │   │   └── Role.java           # USER / ADMIN enum
+│   │   ├── dto/
+│   │   │   ├── AuthResponse.java
+│   │   │   ├── LoginRequest.java
+│   │   │   ├── RegisterRequest.java
+│   │   │   └── StockDataDTO.java
+│   │   ├── repository/
+│   │   │   ├── UserRepository.java
+│   │   │   └── StockDataRepository.java
+│   │   └── exception/
+│   │       ├── GlobalExceptionHandler.java  # @RestControllerAdvice
+│   │       └── UserAlreadyExistsException.java
+│   ├── src/main/resources/
+│   │   ├── application.properties           # PostgreSQL / production
+│   │   ├── application-local.properties     # H2 / local dev profile
+│   │   └── db-init.sql                      # Manual DB initialization reference
+│   ├── src/test/
+│   │   └── PredictiveMarketApplicationTests.java
+│   │   └── service/UserServiceImplTest.java
+│   ├── Dockerfile                           # Multi-stage Java build
+│   └── pom.xml                             # Spring Boot 3.2.5, Java 17
+│
+├── ml-service/                     # Python FastAPI ML Microservice
+│   ├── main.py                     # FastAPI app + CORS + lifespan
+│   ├── model/
+│   │   ├── lstm_model.py           # TensorFlow 2-layer LSTM architecture
+│   │   └── predictor.py            # End-to-end: fetch → preprocess → train → predict
+│   ├── data/
+│   │   └── stock_fetcher.py        # yfinance wrapper with caching
+│   ├── Dockerfile
+│   └── requirements.txt
+│
+├── docker-compose.yml              # Full stack: postgres + backend + ml-service
+├── .env.example                    # Environment variable template
+└── README.md
 ```
 
 ---
 
-## Demo Mode
+## 🔑 API Reference
 
-The app works **without any backend** using intelligent fallback:
+### Authentication (`/api/auth`)
 
-- **Auth**: Demo sessions are created client-side with a mock JWT
-- **Charts**: Realistic OHLCV data is generated with per-symbol volatility profiles
-- **Predictions**: Seeded LSTM-style trend forecasts with confidence scores
-- **AI Chat**: Pre-built contextual responses for common financial queries
+| Method | Endpoint | Body | Response |
+|--------|----------|------|----------|
+| `POST` | `/api/auth/register` | `{firstName, lastName, email, password}` | `{token, type, expiresIn, user}` |
+| `POST` | `/api/auth/login` | `{email, password}` | `{token, type, expiresIn, user}` |
+| `POST` | `/api/auth/logout` | — | `{message}` |
 
-This means you can open `frontend/index.html` directly in a browser and have a fully functional demo.
+### Dashboard (`/api/dashboard`) — Requires JWT
+
+| Method | Endpoint | Params | Response |
+|--------|----------|--------|----------|
+| `GET` | `/api/dashboard/stocks/{symbol}` | `?timeframe=1M` | OHLCV bars |
+| `GET` | `/api/dashboard/predict/{symbol}` | — | 30-day price predictions |
+| `POST` | `/api/dashboard/chat` | `{message, symbol, history}` | AI response |
+| `GET` | `/api/dashboard/health` | — | Status check |
+
+### ML Service (`http://localhost:8000`)
+
+| Method | Endpoint | Response |
+|--------|----------|----------|
+| `GET` | `/predict/{symbol}` | `{symbol, prices, confidence}` |
+| `GET` | `/symbols` | Supported tickers |
+| `GET` | `/health` | Service status |
 
 ---
 
-## Supported Stock Symbols
+## ⚙️ Configuration
 
-| Symbol | Company |
-|--------|---------|
-| AAPL | Apple Inc. |
-| GOOGL | Alphabet Inc. |
-| MSFT | Microsoft Corporation |
-| TSLA | Tesla, Inc. |
-| NVDA | NVIDIA Corporation |
-| AMZN | Amazon.com, Inc. |
+### Environment Variables
 
-*The ML service also supports: META, NFLX, AMD, INTC, BABA, ORCL*
+Copy `.env.example` to `.env` and set your values:
 
----
-
-## ML Model Details
-
-The LSTM model uses a 2-layer architecture:
-
+```env
+POSTGRES_PASSWORD=your_secure_password
+JWT_SECRET=your-256-bit-secret-key     # openssl rand -hex 32
+GROQ_API_KEY=gsk_...                    # https://console.groq.com/keys
 ```
-Input (60 × 1)
-  → LSTM(50, return_sequences=True) → Dropout(0.2)
-  → LSTM(50, return_sequences=False) → Dropout(0.2)
-  → Dense(25, relu)
-  → Dense(1)
+
+### Groq API Key
+
+Get a **free** API key at [console.groq.com](https://console.groq.com/keys) and set:
+- **Frontend**: `assistant.js` → `GROQ_API_KEY` constant
+- **Backend**: `application.properties` → `groq.api.key` (or via `GROQ_API_KEY` env var)
+
+> **Demo Mode**: The app works fully without any API keys. Auth uses JWT tokens, stock data is generated synthetically, and the AI chat returns pre-scripted responses.
+
+---
+
+## 🧠 OOP Concepts Demonstrated
+
+| Concept | Where |
+|---------|-------|
+| **Inheritance** | `User extends BaseEntity`, `StockData extends BaseEntity` |
+| **Polymorphism** | `UserService` / `StockService` interfaces + `*Impl` concrete classes |
+| **Encapsulation** | `StockFetcher`, `LSTMModel`, `StockPredictor` — all internal state private |
+| **Abstraction** | Controllers only depend on service interfaces, never on implementations |
+| **Composition** | `StockPredictor` composes `StockFetcher` and `LSTMModel` |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | HTML5, Vanilla CSS (glassmorphism), JavaScript ES2022+ |
+| Charts | TradingView Lightweight Charts |
+| Backend | Spring Boot 3.2, Spring Security, Spring Data JPA |
+| Auth | JWT (JJWT 0.12), BCrypt |
+| Database | PostgreSQL 16 (production), H2 (local dev) |
+| ML Service | Python 3.11, FastAPI, TensorFlow 2.16, yfinance |
+| AI Chat | Groq API (Llama 3.3 70B) |
+| Containerization | Docker, Docker Compose |
+
+---
+
+## 🧪 Running Tests
+
+```bash
+cd backend
+
+# Run all tests
+mvn test
+
+# Run with local (H2) profile only
+mvn test -Dspring.profiles.active=local
+
+# Run specific test class
+mvn test -Dtest=UserServiceImplTest
 ```
 
-- **Training data**: 2 years of daily OHLCV (via yfinance)
-- **Sequence length**: 60 trading days (look-back window)
-- **Prediction horizon**: 30 trading days
-- **Training strategy**: Early stopping + ReduceLROnPlateau
-- **Model persistence**: Saved to `saved_models/{symbol}_lstm.keras`
+---
+
+## 📊 Supported Stock Symbols
+
+`AAPL` · `GOOGL` · `MSFT` · `TSLA` · `NVDA` · `AMZN` · `META` · `NFLX` · `AMD` · `INTC` · `BABA` · `ORCL`
 
 ---
 
-## OOP Design Highlights
+## 🐳 Docker Commands Reference
 
-This project is designed to demonstrate clean OOP principles:
+```bash
+# Start all services
+docker-compose up -d
 
-- **Inheritance**: `User extends BaseEntity`, `UserServiceImpl implements UserService`
-- **Encapsulation**: `StockFetcher` isolates all yfinance logic; `LSTMModel` encapsulates all Keras operations
-- **Polymorphism**: `User implements UserDetails` — treated as both a JPA entity and Spring Security principal
-- **Composition**: `StockPredictor` composes `StockFetcher` and `LSTMModel` (composition over inheritance)
-- **Interface Segregation**: Separate `UserService` and `StockService` interfaces with clean contracts
+# Tail logs for a specific service
+docker-compose logs -f backend
+docker-compose logs -f ml-service
+
+# Stop and remove containers
+docker-compose down
+
+# Stop and remove containers + volumes (wipes DB)
+docker-compose down -v
+
+# Rebuild images after code changes
+docker-compose up -d --build
+```
 
 ---
 
-## License
+## 🚨 Troubleshooting
 
-MIT License — see [LICENSE](LICENSE) for details.
+| Problem | Solution |
+|---------|---------|
+| Backend won't start | Check `SPRING_DATASOURCE_URL` env var; use local H2 profile for development |
+| ML service slow to start | Normal — TensorFlow model initialization takes ~30-60 seconds |
+| CORS errors | Ensure frontend origin is in `AppConfig.java` `allowedOriginPatterns` |
+| JWT invalid token | Token may be expired (24h) — log out and log in again |
+| No chart data | App falls back to synthetic demo data when backend is offline |
+| Groq AI not responding | Set a valid `GROQ_API_KEY`; without it, demo responses are returned |
+
+---
+
+*Built with ❤️ for the SMART Internship Programme*

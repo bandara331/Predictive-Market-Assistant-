@@ -3,7 +3,7 @@
  * Handles: Login, Register, Logout, Token management, Route protection
  */
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'http://localhost:8081/api';
 const TOKEN_KEY = 'predictiq_jwt';
 const USER_KEY  = 'predictiq_user';
 
