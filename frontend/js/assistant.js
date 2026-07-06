@@ -4,7 +4,7 @@
  */
 
 const AssistantModule = (() => {
-  const BACKEND_CHAT_URL = 'http://localhost:8081/api/dashboard/chat';
+  const BACKEND_CHAT_URL = 'https://noble-connection-production.up.railway.app/api/dashboard/chat';
   // Direct Groq fallback (used when backend is offline)
   const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
   const GROQ_API_KEY = ''; // GitHub Push Protection: Key removed
