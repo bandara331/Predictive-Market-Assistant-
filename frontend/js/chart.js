@@ -125,18 +125,37 @@ const ChartModule = (() => {
     });
   }
 
+  /* ─── Timestamp helper ─── */
+  function _toChartTime(ts) {
+    // TradingView expects UNIX seconds for intraday, or 'YYYY-MM-DD' for daily+
+    // Always use date string to avoid timezone issues
+    const d = new Date(ts * 1000);
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
   /* ─── Data Loading ─── */
   function loadCandles(ohlcvArray) {
     if (!candleSeries) return;
-    // Sort by time ascending
-    const sorted = [...ohlcvArray].sort((a, b) => a.time - b.time);
+    // Convert timestamps → 'YYYY-MM-DD', deduplicate same-day entries, sort ascending
+    const seen = new Set();
+    const sorted = ohlcvArray
+      .map(d => ({ ...d, time: _toChartTime(d.time) }))
+      .filter(d => { if (seen.has(d.time)) return false; seen.add(d.time); return true; })
+      .sort((a, b) => (a.time < b.time ? -1 : 1));
     candleSeries.setData(sorted);
     chart.timeScale().fitContent();
   }
 
   function loadLine(closePriceArray) {
     if (!lineSeries) return;
-    const sorted = [...closePriceArray].sort((a, b) => a.time - b.time);
+    const seen = new Set();
+    const sorted = closePriceArray
+      .map(d => ({ ...d, time: _toChartTime(d.time) }))
+      .filter(d => { if (seen.has(d.time)) return false; seen.add(d.time); return true; })
+      .sort((a, b) => (a.time < b.time ? -1 : 1));
     lineSeries.setData(sorted);
     chart.timeScale().fitContent();
   }
@@ -144,7 +163,11 @@ const ChartModule = (() => {
   function loadPredictions(predArray) {
     if (!predSeries) return;
     if (!showPreds) { predSeries.setData([]); return; }
-    const sorted = [...predArray].sort((a, b) => a.time - b.time);
+    const seen = new Set();
+    const sorted = predArray
+      .map(d => ({ ...d, time: _toChartTime(d.time) }))
+      .filter(d => { if (seen.has(d.time)) return false; seen.add(d.time); return true; })
+      .sort((a, b) => (a.time < b.time ? -1 : 1));
     predSeries.setData(sorted);
   }
 
