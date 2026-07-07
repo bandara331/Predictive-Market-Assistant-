@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI Business & Financial Dashboard — Advanced market analytics, LSTM predictions, SME demand forecasting, and Groq AI insights." />
+  <title>AI Analytics & Finance | PredictIQ</title>
+
+  <!-- Google Fonts (same as main app) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- TradingView Lightweight Charts v4 -->
+  <script src="https://unpkg.com/lightweight-charts@4.1.4/dist/lightweight-charts.standalone.production.js"></script>
+
+  <!-- Isolated CSS — no dependency on styles.css -->
+  <link rel="stylesheet" href="css/ai-dashboard.css" />
+</head>
+<body>
+
+  <!-- ─── Auth Error Overlay (shown if no JWT) ─── -->
+  <div id="aid-auth-error" class="aid-auth-error aid-hidden">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="1.5">
+      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+    <h2>Authentication Required</h2>
+    <p>Please sign in to access the AI Analytics Dashboard.</p>
+    <a href="index.html">← Back to Login</a>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!--                  MAIN APP                   -->
+  <!-- ════════════════════════════════════════════ -->
+  <div id="aid-main">
+
+    <!-- ─── NAVBAR ─── -->
+    <nav class="aid-navbar">
+      <!-- Brand -->
+      <a href="index.html" class="aid-nav-brand">
+        <div class="aid-nav-logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <span class="aid-brand-name">PredictIQ</span>
+        <span class="aid-brand-sub">AI Analytics</span>
+      </a>
+
+      <!-- Symbol Selector -->
+      <div class="aid-nav-center">
+        <button class="aid-sym-btn active" id="aid-sym-AAPL"  onclick="aidSelectSymbol('AAPL')">AAPL</button>
+        <button class="aid-sym-btn"        id="aid-sym-GOOGL" onclick="aidSelectSymbol('GOOGL')">GOOGL</button>
+        <button class="aid-sym-btn"        id="aid-sym-MSFT"  onclick="aidSelectSymbol('MSFT')">MSFT</button>
+        <button class="aid-sym-btn"        id="aid-sym-TSLA"  onclick="aidSelectSymbol('TSLA')">TSLA</button>
+        <button class="aid-sym-btn"        id="aid-sym-NVDA"  onclick="aidSelectSymbol('NVDA')">NVDA</button>
+        <button class="aid-sym-btn"        id="aid-sym-AMZN"  onclick="aidSelectSymbol('AMZN')">AMZN</button>
+      </div>
+
+      <!-- Right -->
+      <div class="aid-nav-right">
+        <div class="aid-live-badge">
+          <span class="aid-live-dot"></span>LIVE
+        </div>
+        <span id="aid-clock" style="font-size:0.78rem;color:#4a5568;font-variant-numeric:tabular-nums;white-space:nowrap"></span>
+        <span id="aid-user-name" style="font-size:0.82rem;color:#8b95b0;font-weight:500;"></span>
+        <a href="index.html" class="aid-back-btn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Main Dashboard
+        </a>
+      </div>
+    </nav>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!--              THREE-COLUMN LAYOUT            -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="aid-layout">
+
+      <!-- ─── LEFT SIDEBAR ─── -->
+      <aside class="aid-sidebar">
+
+        <!-- Stock Identity Card -->
+        <div class="aid-stock-card aid-glass">
+          <div class="aid-stock-name" id="aid-stock-sym">AAPL</div>
+          <div class="aid-stock-full" id="aid-stock-name-full">Apple Inc.</div>
+          <div class="aid-stock-price" id="aid-stock-price">$—</div>
+          <div id="aid-price-badge" class="aid-price-badge up">▲ 0.00%</div>
+          <div class="aid-stock-meta">
+            <div class="aid-meta-row">
+              <span class="aid-meta-label">Open</span>
+              <span class="aid-meta-value" id="aid-meta-open">—</span>
+            </div>
+            <div class="aid-meta-row">
+              <span class="aid-meta-label">High</span>
+              <span class="aid-meta-value" id="aid-meta-high">—</span>
+            </div>
+            <div class="aid-meta-row">
+              <span class="aid-meta-label">Low</span>
+              <span class="aid-meta-value" id="aid-meta-low">—</span>
+            </div>
+            <div class="aid-meta-row">
+              <span class="aid-meta-label">Volume</span>
+              <span class="aid-meta-value" id="aid-meta-volume">—</span>
+            </div>
+            <div class="aid-meta-row">
+              <span class="aid-meta-label">Market Cap</span>
+              <span class="aid-meta-value" id="aid-meta-mktcap">—</span>
+            </div>
+            <div class="aid-meta-row">
+              <span class="aid-meta-label">P/E Ratio</span>
+              <span class="aid-meta-value" id="aid-meta-pe">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div style="padding: 14px; border-radius: 16px;" class="aid-glass">
+          <div class="aid-section-title" style="margin-bottom:10px;">AI Analytics KPIs</div>
+          <div class="aid-kpi-grid">
+            <div class="aid-kpi-card aid-glass">
+              <div class="aid-kpi-label">Current Price</div>
+              <div class="aid-kpi-value" id="aid-kpi-price">$—</div>
+              <div class="aid-kpi-change up" id="aid-kpi-change">—</div>
+            </div>
+            <div class="aid-kpi-card aid-glass">
+              <div class="aid-kpi-label">30d Prediction</div>
+              <div class="aid-kpi-value" id="aid-kpi-pred">$—</div>
+              <div class="aid-kpi-change" style="color:#8b95b0">AI Forecast</div>
+            </div>
+            <div class="aid-kpi-card aid-glass">
+              <div class="aid-kpi-label">AI Confidence</div>
+              <div class="aid-kpi-value" id="aid-kpi-conf">—%</div>
+              <div class="aid-kpi-change" style="color:#8b95b0">LSTM Score</div>
+            </div>
+            <div class="aid-kpi-card aid-glass">
+              <div class="aid-kpi-label">Signal</div>
+              <div id="aid-kpi-signal" class="aid-demand-badge bullish">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SME Demand Insights Card -->
+        <div class="aid-demand-card aid-glass">
+          <div class="aid-section-title">SME Demand Forecast</div>
+          <div style="margin-top: 10px;">
+            <div class="aid-demand-row">
+              <span class="aid-demand-label">Trend</span>
+              <span class="aid-demand-value" id="aid-demand-trend">—</span>
+            </div>
+            <div class="aid-demand-row">
+              <span class="aid-demand-label">Peak Demand</span>
+              <span class="aid-demand-value" id="aid-demand-peak">—</span>
+            </div>
+            <div class="aid-demand-row">
+              <span class="aid-demand-label">Avg Demand</span>
+              <span class="aid-demand-value" id="aid-demand-avg">—</span>
+            </div>
+            <div class="aid-demand-row">
+              <span class="aid-demand-label">30d Outlook</span>
+              <span id="aid-demand-outlook-badge" class="aid-demand-badge neutral" id="aid-demand-outlook">—</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- ─── CENTER CHART AREA ─── -->
+      <main class="aid-chart-area">
+
+        <!-- Stock Candlestick + Prediction Chart -->
+        <div class="aid-chart-panel aid-glass">
+          <div class="aid-chart-loading" id="aid-stock-loading">
+            <div class="aid-mini-loader"></div>
+            <span>Loading market data...</span>
+          </div>
+          <div class="aid-chart-header">
+            <div class="aid-chart-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" stroke-width="2">
+                <rect x="7" y="2" width="2" height="4"/><rect x="5" y="6" width="6" height="12" rx="1"/>
+                <rect x="7" y="18" width="2" height="4"/><rect x="15" y="5" width="2" height="3"/>
+                <rect x="13" y="8" width="6" height="8" rx="1"/><rect x="15" y="16" width="2" height="3"/>
+              </svg>
+              Stock Price & LSTM Prediction
+              <span class="aid-chart-pill">LIVE</span>
+            </div>
+            <div class="aid-tf-group">
+              <button class="aid-tf-btn" onclick="aidSetTf('1W',this)">1W</button>
+              <button class="aid-tf-btn active" onclick="aidSetTf('1M',this)">1M</button>
+              <button class="aid-tf-btn" onclick="aidSetTf('3M',this)">3M</button>
+              <button class="aid-tf-btn" onclick="aidSetTf('6M',this)">6M</button>
+              <button class="aid-tf-btn" onclick="aidSetTf('1Y',this)">1Y</button>
+            </div>
+          </div>
+          <div id="aid-stock-chart" class="aid-chart-canvas"></div>
+          <div class="aid-chart-legend">
+            <div class="aid-legend-item">
+              <span class="aid-legend-dot aid-legend-dot--price"></span> Historical Price
+            </div>
+            <div class="aid-legend-item">
+              <span class="aid-legend-dot aid-legend-dot--pred"></span> LSTM Prediction (30d)
+            </div>
+          </div>
+        </div>
+
+        <!-- SME Demand Forecast Chart -->
+        <div class="aid-chart-panel aid-glass">
+          <div class="aid-chart-loading" id="aid-demand-loading">
+            <div class="aid-mini-loader"></div>
+            <span>Loading demand data...</span>
+          </div>
+          <div class="aid-chart-header">
+            <div class="aid-chart-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7b61ff" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+              </svg>
+              SME Demand Forecasting
+              <span class="aid-chart-pill" style="background:rgba(123,97,255,0.1);border-color:rgba(123,97,255,0.35);color:#7b61ff">AI MODEL</span>
+            </div>
+          </div>
+          <div id="aid-demand-chart" class="aid-chart-canvas sm"></div>
+          <div class="aid-chart-legend">
+            <div class="aid-legend-item">
+              <span class="aid-legend-dot aid-legend-dot--demand"></span> Historical Volume Demand
+            </div>
+            <div class="aid-legend-item">
+              <span class="aid-legend-dot aid-legend-dot--forecast"></span> 30d Demand Forecast
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- ─── RIGHT: GROQ AI CHAT PANEL ─── -->
+      <aside class="aid-chat-panel aid-glass">
+        <!-- Chat Header -->
+        <div class="aid-chat-header">
+          <div class="aid-chat-title-row">
+            <div class="aid-ai-avatar">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+              </svg>
+            </div>
+            <div>
+              <div class="aid-chat-name">Groq AI Analyst</div>
+              <div class="aid-chat-sub">Powered by Llama 3.3 70B</div>
+            </div>
+          </div>
+          <div class="aid-online-badge">
+            <span class="aid-online-dot"></span>Online
+          </div>
+        </div>
+
+        <!-- Quick Prompts -->
+        <div class="aid-quick-prompts">
+          <button class="aid-qp-btn" onclick="aidSendQuick('Analyze the current market trend and give a buy/sell recommendation with reasoning.')">📊 Trend Analysis</button>
+          <button class="aid-qp-btn" onclick="aidSendQuick('What are the key risk factors for this stock? Provide a concise risk assessment.')">⚠️ Risk Assessment</button>
+          <button class="aid-qp-btn" onclick="aidSendQuick('Provide a 30-day price forecast and key business strategy insights based on current performance.')">📈 Growth Forecast</button>
+          <button class="aid-qp-btn" onclick="aidSendQuick('How does demand forecasting help SMEs with inventory and pricing strategy for this sector?')">🏭 SME Demand</button>
+        </div>
+
+        <!-- Messages -->
+        <div class="aid-messages" id="aid-messages"></div>
+
+        <!-- Input -->
+        <div class="aid-input-area">
+          <div class="aid-input-wrapper">
+            <textarea
+              id="aid-chat-input"
+              class="aid-textarea"
+              placeholder="Ask about stocks, forecasts, or business strategy..."
+              rows="1"
+              onkeydown="aidHandleKey(event)"
+              oninput="aidAutoResize(this)"
+            ></textarea>
+            <button class="aid-send-btn" id="aid-send-btn" onclick="aidSendMessage()" title="Send message">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+    </div><!-- end .aid-layout -->
+  </div><!-- end #aid-main -->
+
+  <!-- Isolated JS — no dependency on existing JS files -->
+  <script src="js/ai-dashboard.js"></script>
+</body>
+</html>

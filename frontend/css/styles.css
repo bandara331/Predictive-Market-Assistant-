@@ -508,6 +508,28 @@ body {
   border-color: rgba(239,83,80,0.4);
 }
 
+/* AI Analytics & Finance nav button — add-on module link */
+.btn-ai-analytics {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(123,97,255,0.08));
+  border: 1px solid rgba(0,212,255,0.35);
+  border-radius: var(--r-md);
+  color: var(--brand-primary);
+  font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  font-family: var(--font-main);
+  transition: all var(--t-fast);
+  white-space: nowrap;
+  box-shadow: 0 2px 12px rgba(0,212,255,0.12);
+}
+.btn-ai-analytics:hover {
+  background: linear-gradient(135deg, rgba(0,212,255,0.16), rgba(123,97,255,0.16));
+  border-color: rgba(0,212,255,0.6);
+  box-shadow: 0 4px 20px rgba(0,212,255,0.25);
+  color: #fff;
+}
+
 /* ─── DASHBOARD LAYOUT ─── */
 .dashboard-layout {
   display: grid;
