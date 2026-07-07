@@ -105,9 +105,22 @@ public class StockServiceImpl implements StockService {
             headers.setBearerAuth(groqApiKey);
 
             List<Map<String, String>> messages = new ArrayList<>();
-            messages.add(Map.of("role", "system", "content",
-                    "You are an expert AI financial analyst. The user is viewing " + symbol + " stock. Provide concise, data-driven insights."));
-            messages.add(Map.of("role", "user", "content", message));
+            if (history instanceof List<?> histList) {
+                for (Object item : histList) {
+                    if (item instanceof Map<?,?> histMap) {
+                        Map<String, String> msg = new HashMap<>();
+                        for (Map.Entry<?,?> entry : histMap.entrySet()) {
+                            msg.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
+                        }
+                        messages.add(msg);
+                    }
+                }
+            }
+            if (messages.isEmpty()) {
+                messages.add(Map.of("role", "system", "content",
+                        "You are an expert AI business advisor. You MUST ONLY answer questions related to business and finance."));
+                messages.add(Map.of("role", "user", "content", message));
+            }
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("model", groqModel);

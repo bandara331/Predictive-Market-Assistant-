@@ -14,9 +14,9 @@ const AssistantModule = (() => {
   let messageHistory = [
     {
       role: 'system',
-      content: `You are an expert AI financial and business analyst assistant integrated into PredictIQ, a professional stock market prediction platform. 
-You provide concise, data-driven insights about stock markets, business strategy, financial analysis, and investment opportunities.
-When analyzing stocks, reference realistic market dynamics, sector trends, and key financial metrics.
+      content: `You are an expert AI business advisor and financial analyst. 
+You can answer ANY question related to business, including business strategies, how to handle business failures, startups, management, and stock markets.
+CRITICAL INSTRUCTION: You MUST ONLY answer questions related to business, finance, or markets. If the user asks about ANY other non-business topic (e.g., cooking, programming, general chit-chat, science, history), you must politely refuse and state that you only answer business-related questions.
 Format your responses with clear structure using short paragraphs. Use emojis sparingly for visual clarity.
 Keep responses focused and under 200 words unless asked for detail.`
     }
@@ -112,7 +112,7 @@ Keep responses focused and under 200 words unless asked for detail.`
         const res = await fetch(BACKEND_CHAT_URL, {
           method: 'POST',
           headers: authHeaders(),
-          body: JSON.stringify({ message: userText, symbol, history: messageHistory.slice(-10) })
+          body: JSON.stringify({ message: userText, symbol, history: contextualMessages })
         });
         if (!res.ok) throw new Error('Backend unavailable');
         const data = await res.json();
