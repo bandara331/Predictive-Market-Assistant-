@@ -188,8 +188,18 @@ Keep responses focused and under 200 words unless asked for detail.`
     }
     return `**AI Financial Analysis: ${symbol}** 🤖\n\nBased on current market data and LSTM predictions:\n\nThe stock shows **moderate bullish momentum** with technical indicators aligned positively. The AI model's 30-day forecast suggests a potential **+3.8% upside** with 75% confidence.\n\n**Key Metrics to Watch:**\n- Support level: -5% from current\n- Resistance zone: +6-8% from current\n- Volume profile: Accumulation pattern detected\n\nWould you like a deeper analysis on any specific aspect?`;
   }
+  function injectFileContext(filename, csvData) {
+    messageHistory.push({
+      role: 'system',
+      content: `[FILE UPLOADED] The user has attached a file named "${filename}". The contents of the file are as follows:\n\n${csvData}\n\nAnalyze this data, answer questions about it, and point out any errors or anomalies.`
+    });
+    // Keep history manageable but allow the file to exist as a system message
+    if (messageHistory.length > 20) {
+      messageHistory = [messageHistory[0], ...messageHistory.slice(-18)];
+    }
+  }
 
-  return { sendMessage };
+  return { sendMessage, injectFileContext };
 })();
 
 /* ─── Global Bindings (HTML onclick) ─── */
@@ -213,4 +223,55 @@ function handleChatKey(e) {
 function autoResizeTextarea(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+/* ─── File Upload Handling ─── */
+let currentUploadedFile = null;
+
+function removeUploadedFile() {
+  currentUploadedFile = null;
+  document.getElementById('file-upload-indicator').classList.add('hidden');
+  document.getElementById('chat-file-upload').value = '';
+}
+
+async function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  document.getElementById('file-upload-name').textContent = file.name;
+  document.getElementById('file-upload-indicator').classList.remove('hidden');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      // Use SheetJS to read the file
+      const workbook = XLSX.read(data, {type: 'array'});
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      
+      // Convert to CSV
+      let csvData = XLSX.utils.sheet_to_csv(worksheet);
+      
+      // Truncate to avoid exceeding AI token limits (approx first 100-200 lines)
+      if (csvData.length > 5000) {
+        csvData = csvData.substring(0, 5000) + '\n... [DATA TRUNCATED DUE TO LENGTH]';
+      }
+
+      // Inject into AssistantModule's messageHistory directly by calling a new method
+      AssistantModule.injectFileContext(file.name, csvData);
+
+      // Trigger automatic analysis
+      sendQuickMessage(`I have uploaded a business data file named ${file.name}. Please analyze it, identify any anomalies, errors, or key insights, and summarize it for me.`);
+
+      // Clear the file input so the same file can be uploaded again if needed
+      document.getElementById('chat-file-upload').value = '';
+      
+    } catch (err) {
+      console.error("Error parsing file:", err);
+      alert("Failed to parse the file. Please ensure it's a valid CSV or Excel sheet.");
+      removeUploadedFile();
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
