@@ -604,6 +604,28 @@ body {
   background: rgba(0,212,255,0.12);
   color: var(--brand-primary);
 }
+
+.pattern-search-btn {
+  padding: 5px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(0,212,255,0.4);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all var(--t-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0,212,255,0.15);
+}
+.pattern-search-btn:hover {
+  background: rgba(0,212,255,0.1);
+  box-shadow: 0 6px 16px rgba(0,212,255,0.25);
+  border-color: rgba(0,212,255,0.6);
+}
 .prediction-toggle {
   display: flex; align-items: center; gap: var(--sp-sm);
   margin-left: auto;
