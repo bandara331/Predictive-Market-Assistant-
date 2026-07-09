@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Fintech & Business Dashboard</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- TradingView Lightweight Charts -->
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+
+  <link rel="stylesheet" href="css/ai-fintech-dashboard.css" />
+</head>
+<body class="dark-theme">
+
+  <!-- Navbar -->
+  <nav class="fintech-navbar glass-panel">
+    <div class="nav-brand">
+      <h2>AI Fintech Analytics</h2>
+    </div>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-back">Back to Main Dashboard</a>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="dashboard-container">
+    
+    <!-- Top Row: Charts & Loan Prediction -->
+    <div class="top-row">
+      <!-- Charting Section -->
+      <div class="chart-section glass-panel">
+        <div class="panel-header">
+          <h3>Business Cash-Flow & Demand Forecast</h3>
+        </div>
+        <div id="tv-chart" class="chart-container"></div>
+      </div>
+
+      <!-- Micro-Loan Predictor -->
+      <div class="loan-section glass-panel">
+        <div class="panel-header">
+          <h3>Micro-Loan Predictor</h3>
+        </div>
+        <div class="loan-content">
+          <div class="score-display">
+            <span class="score-label">Credit Risk Score</span>
+            <div class="score-value" id="credit-score">---</div>
+            <div class="score-status" id="credit-status">Evaluating...</div>
+          </div>
+          <form id="loan-form" class="loan-form">
+            <input type="number" id="loan-amount" placeholder="Loan Amount ($)" required />
+            <input type="number" id="business-revenue" placeholder="Annual Revenue ($)" required />
+            <button type="submit" class="btn-primary">Predict Repayment Probability</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row: Fraud Alerts & Bank Report -->
+    <div class="bottom-row">
+      <!-- Fraud Alert Panel -->
+      <div class="fraud-section glass-panel">
+        <div class="panel-header">
+          <h3>Fraud Alert Panel</h3>
+          <button id="refresh-fraud" class="btn-icon">↻</button>
+        </div>
+        <div class="fraud-list" id="fraud-list">
+          <p class="loading-text">Scanning for anomalies...</p>
+        </div>
+      </div>
+
+      <!-- Automated Bank Report -->
+      <div class="report-section glass-panel">
+        <div class="panel-header">
+          <h3>Automated Bank Report (Groq LLM)</h3>
+        </div>
+        <div class="report-content">
+          <p class="report-description">Generate a structured, professional financial summary based on the latest business metrics and AI risk analysis.</p>
+          <button id="generate-report-btn" class="btn-secondary">Generate Financial Report</button>
+          <div id="report-output" class="report-output hidden"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/ai-fintech-dashboard.js"></script>
+</body>
+</html>
