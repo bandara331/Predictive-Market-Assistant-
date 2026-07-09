@@ -7,6 +7,7 @@ import com.predictive.fintech.model.LoanPrediction;
 import com.predictive.fintech.repository.FraudAlertRepository;
 import com.predictive.fintech.repository.LoanPredictionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -24,8 +25,8 @@ public class FintechServiceImpl implements FintechService {
     private final GroqFintechService groqService;
     private final RestTemplate restTemplate;
 
-    // The ML microservice URL (assumed port 8001 or 8002)
-    private final String ML_SERVICE_URL = "http://localhost:8001";
+    @Value("${ml.service.url:http://localhost:8000}")
+    private String ML_SERVICE_URL;
 
     @Autowired
     public FintechServiceImpl(LoanPredictionRepository loanRepo,
