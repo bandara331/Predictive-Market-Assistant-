@@ -14,30 +14,22 @@ import java.util.Map;
  *   - Defines the contract for all fintech business logic.
  *   - Concrete implementation is FintechServiceImpl, injected at runtime by Spring IoC.
  *   - Completely isolated from the existing AiDashboardService interface.
- *
- * Endpoints served:
- *   POST /api/fintech/loan/predict      → predictLoanRisk
- *   GET  /api/fintech/fraud/detect      → detectFraudAlerts
- *   POST /api/fintech/report/generate   → generateBankReport
- *   GET  /api/fintech/cashflow          → getCashFlowData
  */
 public interface FintechService {
 
     /**
-     * Calls the Python Fintech ML Microservice (port 8002) with the loan application
-     * features, receives a credit score + risk classification, persists the
-     * LoanPrediction entity, and returns the result map.
+     * Calls the Python ML Microservice with the loan application features,
+     * receives a credit score + repayment probability, and returns the result map.
      *
      * @param request   input features from the UI form
      * @param userEmail authenticated user's email (for audit)
-     * @return map: creditScore, riskLevel, repaymentProbability, dtiRatio, recommendation
+     * @return map: creditScore, repaymentProbability
      */
     Map<String, Object> predictLoanRisk(LoanApplicationRequest request, String userEmail);
 
     /**
-     * Calls the Python Fintech ML Microservice (port 8002) to run Isolation Forest
-     * anomaly detection on a simulated transaction dataset.
-     * Persists flagged FraudAlert entities and returns the list of alerts.
+     * Calls the Python ML Microservice to run anomaly detection on transactions.
+     * Returns raw response map from ML service.
      *
      * @param userEmail authenticated user's email
      * @return map with key "alerts" → list of alert objects
@@ -45,22 +37,29 @@ public interface FintechService {
     Map<String, Object> detectFraudAlerts(String userEmail);
 
     /**
-     * Constructs a detailed Groq API prompt including the business financial context
-     * from the request, calls the Groq LLM (via the existing groq.api.* config),
-     * persists the report to BusinessSales, and returns the AI-generated report text.
+     * Returns a typed list of fraud alert maps, ready for the controller to return.
+     * Extracted for clean controller usage without unsafe casting.
      *
-     * @param request   business financials and ML context
      * @param userEmail authenticated user's email
-     * @return map: report (full text), model, responseMs
+     * @return list of alert maps
+     */
+    List<Map<String, Object>> getFraudAlertList(String userEmail);
+
+    /**
+     * Constructs a detailed Groq API prompt and returns the AI-generated report text.
+     *
+     * @param request   business financials context
+     * @param userEmail authenticated user's email
+     * @return map: reportContent (full text)
      */
     Map<String, Object> generateBankReport(BankReportRequest request, String userEmail);
 
     /**
-     * Returns historical cash-flow series from the business_sales table for the
-     * authenticated user. Falls back to synthetic data when the table is empty.
+     * Returns historical cash-flow series. Falls back to empty when table is empty.
      *
      * @param userEmail authenticated user's email
-     * @return map: historical (list of {date, inflow, outflow}), forecast (30-day list)
+     * @return map: historical, forecast
      */
     Map<String, Object> getCashFlowData(String userEmail);
 }
+

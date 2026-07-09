@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/fintech")
@@ -33,9 +35,7 @@ public class FintechController {
     @GetMapping("/fraud-alerts")
     public ResponseEntity<List<Map<String, Object>>> getFraudAlerts() {
         String userEmail = "user@example.com";
-        Map<String, Object> result = fintechService.detectFraudAlerts(userEmail);
-        
-        List<Map<String, Object>> alerts = (List<Map<String, Object>>) result.getOrDefault("alerts", new java.util.ArrayList<>());
+        List<Map<String, Object>> alerts = fintechService.getFraudAlertList(userEmail);
         return ResponseEntity.ok(alerts);
     }
 

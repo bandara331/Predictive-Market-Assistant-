@@ -170,8 +170,12 @@ function setupBankReportGenerator() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-           businessId: "BIZ-1001",
-           timeframe: "Last 30 Days"
+           businessName: "My Business",
+           annualRevenue: 500000,
+           loanAmount: 50000,
+           existingDebt: 10000,
+           fraudAlertCount: 0,
+           latestCreditScore: null
         })
       });
       
